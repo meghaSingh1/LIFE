@@ -1,2 +1,2 @@
 # LIFE
- Social Network Backend using Django
+ Social Network using Django + React
