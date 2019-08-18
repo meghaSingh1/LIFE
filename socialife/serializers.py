@@ -1,4 +1,4 @@
-from .models import MyUser
+from .models import MyUser, Post
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -21,7 +21,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ['email']
+        fields = ['email', 'first_name', 'last_name']
+
+class PostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    date_created = serializers.DateTimeField('%B %d %Y at %H:%M')
+    class Meta:
+        model = Post
+        fields = ['user', 'text_content', 'date_created']
