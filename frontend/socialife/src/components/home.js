@@ -8,7 +8,7 @@ export default class Login extends Component {
     constructor(props) {
       super(props);
       this.state = {
-          email: '16520511@gm.uit.edu.vn',
+          email: '',
           text_content: null,
           user_posts: null,
       }
@@ -73,13 +73,13 @@ export default class Login extends Component {
                 <img src="http://127.0.0.1:8000/static/images/avatar/anon.jpg" />
                 </div>
                 <div class="content">
-                <a class="header">{post.user.first_name + ' ' + post.user.last_name}</a>
+                <Link to={post.user.slug} class="header">{post.user.first_name + ' ' + post.user.last_name}</Link>
                 <div class="meta">{post.date_created}</div>
                 <div class="description">
                     <p>{post.text_content}</p>
                 </div>
                 <div class="extra">
-                    <i aria-hidden="true" class="red like icon large"></i>
+                    <i aria-hidden="true" class="red like outline icon large"></i>
                 </div>
                 </div>
             </div>

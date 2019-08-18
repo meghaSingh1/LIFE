@@ -24,7 +24,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'slug']
 
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer()
