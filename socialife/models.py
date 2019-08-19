@@ -57,7 +57,7 @@ class MyUser(AbstractBaseUser):
     first_name = models.CharField(max_length = 25)
     last_name = models.CharField(max_length = 25)
     gender = models.CharField(max_length = 25, choices = GENDER_CHOICES, default = 'Male')
-    slug = models.SlugField(unique = True)
+    profile_name = models.SlugField(unique = True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

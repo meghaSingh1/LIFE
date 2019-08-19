@@ -19,14 +19,14 @@ export default class Login extends Component {
       axios.post('http://127.0.0.1:8000/api/check_logged_in', {email: email}, {headers: 
       {'Content-Type': 'application/x-www-form-urlencoded',
        'Authorization': "Bearer " + token}})
-       .then(data => {
-          if (data.status == 200)
-              this.props.history.push('/');
-          else               
+        .then(res => {
+            if (res.status == 200)
+                this.props.history.push('/');
+            else               
+                localStorage.clear();
+        }).catch(err => {
             localStorage.clear();
-      }).catch(err => {
-          localStorage.clear();
-      })
+        })
     }
   
     handleSubmit = (e) => {
@@ -52,31 +52,37 @@ export default class Login extends Component {
         </div>
       </div>) : '';
       return (
-        <div className="App">
-            <div style={{width: '24em', paddingTop: '10em', textAlign: 'left'}} class="ui text container">
-                <div style={{width: '24em'}} class="ui card">
-                    <div style={{backgroundColor: 'white', padding: '0.6em 1em', textAlign: 'center'}} class="content blue">
-                        <img style={{width: '15em'}} src={logo} alt="Logo" />
+        <div className="login-screen">
+            <div class="ui text container login-wrapper">
+                <div class="ui card login-card">
+                    <div class="content login-form-header">
+                        <img class='login-form-logo' src={logo} alt="Logo" />
                     </div>
                     <div class="content">
-                    <form onSubmit={e => this.handleSubmit(e)} class="ui form">
+                    <form onSubmit={this.handleSubmit} class="ui form">
                         <div class="field required">
                         <label>Email Address</label>
-                        <div style={{border: '1px solid #ccc'}} class="ui input">
-                            <div style={{height: '100%', borderRight: '1px solid #ccc', padding: '.67857143em 1em'}}><i aria-hidden="true" style={{lineHeight: '1.21428571em', fontSize: '1em'}} class="user icon"></i></div>
+                        <div class="ui input input-wrapper">
+                            <div class='input-icon'><i aria-hidden="true" class="user icon"></i></div>
                             <input style={{border: 'None'}} placeholder="Email Address" value={this.state.email} onChange={e => this.setState({email: e.target.value})} />
                         </div>
                         </div>
                         <div class="field required">
                         <label>Password</label>
-                        <div style={{border: '1px solid #ccc'}} class="ui input">
-                            <div style={{height: '100%', borderRight: '1px solid #ccc', padding: '.67857143em 1em'}}><i aria-hidden="true" style={{lineHeight: '1.21428571em', fontSize: '1em'}} class="lock icon"></i></div>
+                        <div class="ui input input-wrapper">
+                            <div class='input-icon'><i aria-hidden="true" class="lock icon"></i></div>
                             <input type='password' style={{border: 'None'}} placeholder="Password" value={this.state.password} onChange={e => this.setState({password: e.target.value})} />
                         </div>
                         </div>
-                        <button style={{width: '100%', fontWeight: 'normal'}} type="submit" class="ui blue button">Login</button>
+                        <button type="submit" class="ui blue button login-form-buttons">Login</button>
                     </form>
                     {errorMessage}
+                    <div style={{textAlign:'center'}}>
+                        <div class="ui horizontal divider">Or</div>
+                        <button onClick={() => this.props.history.push('/signup')} class="ui button login-form-buttons">
+                            <i aria-hidden="true" class="signup icon"></i>Sign up
+                        </button>
+                    </div>
                     </div>
                 </div>
             </div>
