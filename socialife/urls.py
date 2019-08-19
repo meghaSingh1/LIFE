@@ -7,5 +7,6 @@ urlpatterns = [
     path('api/check_logged_in', views.check_logged_in, name='check_logged_in'),
     path('api/create_new_post', views.create_new_post, name='create_new_post'),
     path('api/get_user_posts', views.get_user_posts, name='get_user_posts'),
+    path('api/get_user_profile', views.get_user_profile, name='get_user_profile'),
     path('api/check_profile_name_availability', views.check_profile_name_availability, name='check_profile_name_availability'),
 ]

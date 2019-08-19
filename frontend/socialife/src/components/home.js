@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import axios from 'axios'
 import {Link} from 'react-router-dom'
 import Navbar from './navbar'
-
+import PostList from './postList'
 
 export default class Login extends Component {
     constructor(props) {
@@ -65,30 +65,11 @@ export default class Login extends Component {
     }
   
     render() {
-        const post_items = this.state.user_posts === null ? 
-        (<div class="ui active centered inline loader"></div>) : 
-        this.state.user_posts.map(post => (         
-            <div style={{border: '1px solid #ccc', padding: '12px 10px', backgroundColor: 'white'}} class="item">
-                <div class="ui tiny image">
-                <img src="http://127.0.0.1:8000/static/images/avatar/anon.jpg" />
-                </div>
-                <div class="content">
-                <Link to={post.user.profile_name} class="header">{post.user.first_name + ' ' + post.user.last_name}</Link>
-                <div class="meta">{post.date_created}</div>
-                <div class="description">
-                    <p>{post.text_content}</p>
-                </div>
-                <div class="extra">
-                    <i aria-hidden="true" class="red like outline icon large"></i>
-                </div>
-                </div>
-            </div>
-        ));
 
         return (
-            <div style={{backgroundColor: '#f0eded'}}>
-                <Navbar history={this.props.history}/>
-                <div class='container' style={{padding: '2em 15%'}}>
+            <div class='background'>
+                <Navbar history={this.props.history} profile_name={this.state.use}/>
+                <div class='container feed-container'>
                     <div class="ui pointing menu">
                         <a class="active item">What's on your mind right now?</a>
                     </div>
@@ -101,7 +82,7 @@ export default class Login extends Component {
                         </form>
                     </div>
                     <div class="ui items">
-                        {post_items}
+                        <PostList posts={this.state.user_posts} />
                     </div>
                 </div>
             </div>

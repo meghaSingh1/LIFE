@@ -36,6 +36,7 @@ export default class Login extends Component {
         if (res.status == 200) {
           localStorage.setItem('token', res.data.access);
           localStorage.setItem('email', res.data.email);
+          localStorage.setItem('profile_name', res.data.profile_name);
           this.props.history.push('/')
         }
         else

@@ -31,7 +31,8 @@
 .input-icon {
     height: 100%;
     border-right: 1px solid #ccc;
-    padding: .67857143em 1em
+    padding: .67857143em 1em;
+    background-color: #f0eded;
 }
 
 .login-form-buttons {
@@ -45,3 +46,45 @@
 }
 
 /* */
+
+/* Home */
+
+.post-item {
+    background: #fff !important;
+    padding: 10px !important;
+    border: none !important;
+    border-radius: .28571429rem !important;
+    -webkit-box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5 !important;
+    box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5 !important;
+    -webkit-transition: -webkit-box-shadow .1s ease,-webkit-transform .1s ease !important;
+    transition: -webkit-box-shadow .1s ease,-webkit-transform .1s ease !important;
+    transition: box-shadow .1s ease,transform .1s ease !important;
+    transition: box-shadow .1s ease,transform .1s ease,-webkit-box-shadow .1s ease,-webkit-transform .1s ease !important;
+}
+
+.post-item::after {
+    box-sizing: inherit !important;
+}
+
+.background {
+    background-color: #f0eded !important;
+}
+
+.feed-container {
+    padding: 2em 15%;
+}
+
+/* */
+
+/* Profile */
+
+.profile-container {
+    padding: 2em 15%;
+}
+
+.profile-avatar {
+    width: 200px !important;
+    height: 200px !important; 
+    margin-left: auto;
+    margin-right: auto;
+}

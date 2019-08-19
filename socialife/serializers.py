@@ -16,6 +16,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['first_name'] = self.user.first_name
         data['last_name'] = self.user.last_name
         data['gender'] = self.user.gender
+        data['profile_name'] = self.user.profile_name
         return data
 
 class MyTokenObtainPairView(TokenObtainPairView):

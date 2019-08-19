@@ -15,7 +15,7 @@ from .middlewares import check_user_with_token
 def check_logged_in(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
-        return Response({'message': 'Authorized'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Authorized',}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -36,9 +36,9 @@ def create_new_post(request):
 def get_user_posts(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
+        print(request.user)
         user_posts = Post.objects.filter(user = request.user).order_by('-date_created')
         serializer = PostSerializer(user_posts, many = True).data
-        print(serializer)
         return Response({'message': 'Authorized', 'user_posts': serializer}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -69,6 +69,18 @@ def user_sign_up(request):
     user.set_password(password)
     user.save()
     return Response({'message': 'Available'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def get_user_profile(request):
+    data = json.loads(request.body.decode('utf-8'))
+    request_profile_name = data['profile_name']
+    user = MyUser.objects.filter(profile_name = request_profile_name)
+    if len(user) == 1:
+        user_serializer = UserSerializer(user[0]).data
+        user_posts = Post.objects.filter(user = user[0]).order_by('-date_created')
+        post_serializer = PostSerializer(user_posts, many = True).data
+        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer}, status=status.HTTP_200_OK)
+    return Response({'message': 'Failed'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
