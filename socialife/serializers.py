@@ -22,14 +22,21 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+class RecursiveField(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
 class UserSerializer(serializers.ModelSerializer):
+    # followings = RecursiveField(many = True)
     class Meta:
         model = MyUser
-        fields = ['email', 'first_name', 'last_name', 'profile_name']
+        fields = ['email', 'first_name', 'last_name', 'profile_name', 'get_followings']
 
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    liked_by = UserSerializer(many = True)
     date_created = serializers.DateTimeField('%B %d %Y at %H:%M')
     class Meta:
         model = Post
-        fields = ['user', 'text_content', 'date_created']
+        fields = ['user', 'text_content', 'date_created', 'liked_by']

@@ -10,6 +10,9 @@ from rest_framework.response import Response
 import json
 from .middlewares import check_user_with_token
 
+from django.db.models import Q
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def check_logged_in(request):
@@ -33,11 +36,10 @@ def create_new_post(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def get_user_posts(request):
+def get_feed_posts(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
-        print(request.user)
-        user_posts = Post.objects.filter(user = request.user).order_by('-date_created')
+        user_posts = Post.objects.filter(Q(user = request.user) | Q(user__in=request.user.followings.all())).order_by('-date_created')
         serializer = PostSerializer(user_posts, many = True).data
         return Response({'message': 'Authorized', 'user_posts': serializer}, status=status.HTTP_200_OK)
     else:
@@ -78,9 +80,26 @@ def get_user_profile(request):
     if len(user) == 1:
         user_serializer = UserSerializer(user[0]).data
         user_posts = Post.objects.filter(user = user[0]).order_by('-date_created')
+        is_in_your_following = False
+        if(user[0] in request.user.followings.all()):
+            is_in_your_following = True
         post_serializer = PostSerializer(user_posts, many = True).data
-        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer}, status=status.HTTP_200_OK)
+        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer, 'is_in_your_following': is_in_your_following}, status=status.HTTP_200_OK)
     return Response({'message': 'Failed'}, status=status.HTTP_404_NOT_FOUND)
 
-
-
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def follow_user(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        target_profile_name = data['profile_name']
+        target_user = MyUser.objects.filter(profile_name = target_profile_name)
+        if len(target_user) == 1:
+            if (target_user[0] != request.user):
+                request.user.followings.add(target_user[0])
+                request.user.save()
+                return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)

@@ -59,6 +59,8 @@ class MyUser(AbstractBaseUser):
     gender = models.CharField(max_length = 25, choices = GENDER_CHOICES, default = 'Male')
     profile_name = models.SlugField(unique = True)
 
+    followings = models.ManyToManyField("self", symmetrical = False)
+
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
@@ -68,7 +70,7 @@ class MyUser(AbstractBaseUser):
     REQUIRED_FIELDS = ['date_of_birth', 'last_name', 'first_name', 'gender']
 
     def __str__(self):
-        return self.email
+        return self.profile_name
 
     def has_perm(self, perm, obj=None):
         # "Does the user have a specific permission?"
@@ -86,7 +88,14 @@ class MyUser(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    def get_followings(self):
+        return ",".join([str(p) for p in self.followings.all()])
+
+    def __unicode__(self):
+        return "{0}".format(self.title)
+
 class Post(models.Model):
     user = models.ForeignKey(MyUser, on_delete = models.CASCADE)
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
+    liked_by = models.ManyToManyField(MyUser, related_name = 'liked_by')

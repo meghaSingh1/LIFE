@@ -1,3 +1,17 @@
+/* Header */
+
+.header-logo:hover {
+    background-color: white !important;
+}
+
+.menu .ui.floating.label {
+    top: -1em !important;
+    padding-left: 0.5em !important;
+    padding-right: 0.5em !important;
+}
+
+/*  */
+
 /* Login */
 
 .login-wrapper, .register-wrapper {
@@ -52,6 +66,9 @@
 .post-item {
     background: #fff !important;
     padding: 10px !important;
+    padding-top: 0 !important;
+    margin: 0 10px 15px 10px !important;
+    width: 100% !important;
     border: none !important;
     border-radius: .28571429rem !important;
     -webkit-box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5 !important;
@@ -66,25 +83,70 @@
     box-sizing: inherit !important;
 }
 
-.background {
-    background-color: #f0eded !important;
+.post-item .column {
+    padding: 0.5em !important;
 }
 
-.feed-container {
-    padding: 2em 15%;
+.post-header {
+    margin: 0 0 0.5em 0 !important;
+}
+
+.post-header .post-user-name {
+    font-family: 'Helvetica' !important;
+    font-weight: 700 !important;
+    font-size: 1.28571429em;
+    color: rgba(0,0,0,.85);
+}
+
+.post-header .post_time {
+    margin: .5em 0 .5em;
+    font-size: 1em;
+    line-height: 1em;
+    color: rgba(0,0,0,.6);
+}
+
+.post-header .avatar {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.post-content {
+    white-space: pre-line;
+    margin: 0.5em 0.25em;
+    font-size: 1em;
+    line-height: 1.4285em;
+    color: rgba(0,0,0,.87);
+}
+
+.background {
+    background-color: #e9e5e5 !important;
+}
+
+.feed-container, .profile-container {
+    padding: 2em 5%;
+}
+
+.items {
+    margin: 0 !important;
+    padding: 0 15px !important;
+}
+
+.post-input-section {
+    width: 100%;
+    margin: 0 10px 15px 10px !important;
 }
 
 /* */
 
 /* Profile */
 
-.profile-container {
-    padding: 2em 15%;
-}
-
 .profile-avatar {
     width: 200px !important;
     height: 200px !important; 
     margin-left: auto;
     margin-right: auto;
+}
+
+.item .header {
+    font-family: 'Helvetica' !important;
 }
