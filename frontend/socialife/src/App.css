@@ -150,3 +150,11 @@
 .item .header {
     font-family: 'Helvetica' !important;
 }
+
+.profile-container .card .extra {
+    text-align: center;
+}
+
+.profile-container .card .extra button {
+    margin: 15px 0 !important;
+}

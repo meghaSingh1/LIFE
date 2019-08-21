@@ -11,6 +11,7 @@ import json
 from .middlewares import check_user_with_token
 
 from django.db.models import Q
+import uuid
 
 
 @api_view(['POST'])
@@ -81,8 +82,12 @@ def get_user_profile(request):
         user_serializer = UserSerializer(user[0]).data
         user_posts = Post.objects.filter(user = user[0]).order_by('-date_created')
         is_in_your_following = False
-        if(user[0] in request.user.followings.all()):
-            is_in_your_following = True
+        if data['email'] != -1:
+            request_user = MyUser.objects.filter(email = data['email'])
+            print(data['email'])
+            if len(request_user) == 1:
+                if(user[0] in request_user[0].followings.all()):
+                    is_in_your_following = True
         post_serializer = PostSerializer(user_posts, many = True).data
         return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer, 'is_in_your_following': is_in_your_following}, status=status.HTTP_200_OK)
     return Response({'message': 'Failed'}, status=status.HTTP_404_NOT_FOUND)
@@ -97,9 +102,33 @@ def follow_user(request):
         target_user = MyUser.objects.filter(profile_name = target_profile_name)
         if len(target_user) == 1:
             if (target_user[0] != request.user):
-                request.user.followings.add(target_user[0])
+                if target_user[0] in request.user.followings.all():
+                    request.user.followings.remove(target_user[0])
+                else:
+                    request.user.followings.add(target_user[0])
                 request.user.save()
                 return Response({'message': 'Success'}, status=status.HTTP_200_OK)
             return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def like_a_post(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        print(data)
+        target_post_uuid = data['post_uuid']
+        target_post = Post.objects.filter(uuid = target_post_uuid)
+        if len(target_post) == 1:
+            if not request.user in target_post[0].liked_by.all():
+                target_post[0].liked_by.add(request.user)
+                target_post[0].save()
+                return Response({'message': 'Liked'}, status=status.HTTP_200_OK)
+            else:
+                target_post[0].liked_by.remove(request.user)
+                target_post[0].save()
+                return Response({'message': 'Unliked'}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)

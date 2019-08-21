@@ -17,7 +17,7 @@ export default class Navbar extends Component {
   
     render() {
       return (
-        <div style={{backgroundColor: 'white', padding: '8px 5px'}} class="ui secondary menu">
+        <div style={{backgroundColor: 'white', padding: '5px 5px'}} class="ui secondary menu">
             <a href='/' style={{padding: '0px 5px'}} class="header item header-logo"><img style={{width: '130px'}} src={logo} alt="Logo" /></a>
             <Link to='/' class="active item">Home</Link>
             <Link to='/profile' class="item">Home</Link>

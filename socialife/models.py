@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+import uuid
 
 
 class MyUserManager(BaseUserManager):
@@ -59,7 +60,7 @@ class MyUser(AbstractBaseUser):
     gender = models.CharField(max_length = 25, choices = GENDER_CHOICES, default = 'Male')
     profile_name = models.SlugField(unique = True)
 
-    followings = models.ManyToManyField("self", symmetrical = False)
+    followings = models.ManyToManyField("self", symmetrical = False, related_name='followers')
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -95,6 +96,8 @@ class MyUser(AbstractBaseUser):
         return "{0}".format(self.title)
 
 class Post(models.Model):
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name='UUID')
     user = models.ForeignKey(MyUser, on_delete = models.CASCADE)
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
