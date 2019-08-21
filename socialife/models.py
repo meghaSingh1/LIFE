@@ -102,3 +102,9 @@ class Post(models.Model):
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
     liked_by = models.ManyToManyField(MyUser, related_name = 'liked_by')
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete = models.CASCADE)
+    user = models.ForeignKey(MyUser, on_delete = models.CASCADE)
+    content = models.TextField()
+    date_created = models.DateTimeField(auto_now_add = True)
