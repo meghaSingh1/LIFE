@@ -19,13 +19,14 @@ export default class Navbar extends Component {
       return (
         <div style={{backgroundColor: 'white', padding: '5px 5px'}} class="ui secondary menu">
             <a href='/' style={{padding: '0px 5px'}} class="header item header-logo"><img style={{width: '130px'}} src={logo} alt="Logo" /></a>
-            <Link to='/' class="active item">Home</Link>
-            <Link to='/profile' class="item">Home</Link>
-            <Link to='/following' class="item">Home</Link>
+
+                <a href='/' class="item">Home</a>
+                <a class="item">Home</a>
+                <a href='/following' class="item">Home</a>
             <div class="right menu">
             <div class="item">
                 <div class="ui icon input">
-                <input type="text" placeholder="Search..." />
+                <input style={{width: '100%'}} type="text" placeholder="Search..." />
                 <i aria-hidden="true" class="search icon"></i>
                 </div>
             </div>

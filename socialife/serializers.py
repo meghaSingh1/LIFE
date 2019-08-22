@@ -1,4 +1,4 @@
-from .models import MyUser, Post
+from .models import MyUser, Post, Comment
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -38,15 +38,24 @@ class RecursiveField(serializers.Serializer):
 #         return value.__class__.__name__
 
 class UserSerializer(serializers.ModelSerializer):
-    followers = serializers.StringRelatedField(many=True)
+    followers = serializers.StringRelatedField(many = True)
+    
     class Meta:
         model = MyUser
         fields = ['email', 'first_name', 'last_name', 'profile_name', 'get_followings', 'followers']
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    date_created = serializers.DateTimeField('%B %d %Y at %H:%M')
+    class Meta:
+        model = Comment
+        fields = ['user', 'content', 'date_created',]
 
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     liked_by = UserSerializer(many = True)
     date_created = serializers.DateTimeField('%B %d %Y at %H:%M')
+    comments = CommentSerializer(many = True)
     class Meta:
         model = Post
-        fields = ['uuid', 'user', 'text_content', 'date_created', 'liked_by']
+        fields = ['uuid', 'user', 'text_content', 'date_created', 'liked_by', 'comments']

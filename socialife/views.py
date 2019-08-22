@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post
-from .serializers import UserSerializer, PostSerializer
+from .models import MyUser, Post, Comment
+from .serializers import UserSerializer, PostSerializer, CommentSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -132,3 +132,18 @@ def like_a_post(request):
                 return Response({'message': 'Unliked'}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_a_comment(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        print(data)
+        target_post_uuid = data['post_uuid']
+        target_post = Post.objects.filter(uuid = target_post_uuid)
+        if len(target_post) == 1:
+            comment = Comment.objects.create(user = request.user, content = data['content'], post = target_post[0])
+            return Response({'message': 'Success', 'comment': CommentSerializer(comment).data}, status=status.HTTP_200_OK)
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)

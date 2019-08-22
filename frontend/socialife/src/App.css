@@ -10,6 +10,11 @@
     padding-right: 0.5em !important;
 }
 
+.right.menu {
+    position: absolute !important;
+    right: 0;
+}
+
 /*  */
 
 /* Login */
@@ -67,6 +72,10 @@ textarea {
 
 /* Home */
 
+.post-column {
+    padding-top: 0 !important;
+}
+
 .post-item {
     background: #fff !important;
     padding: 10px !important;
@@ -98,15 +107,15 @@ textarea {
 .post-header .post-user-name {
     font-family: 'Helvetica' !important;
     font-weight: 700 !important;
-    font-size: 1.28571429em;
+    font-size: 1.1em;
     color: rgba(0,0,0,.85);
 }
 
-.post-header .post_time {
+.post-header .post-time {
     margin: .5em 0 .5em;
-    font-size: 1em;
+    font-size: 0.9em;
     line-height: 1em;
-    color: rgba(0,0,0,.6);
+    color: rgba(0,0,0,.7) !important;
 }
 
 .post-header .avatar {
@@ -138,6 +147,10 @@ textarea {
 .post-input-section {
     width: 100%;
     margin: 0 10px 15px 10px !important;
+}
+
+.ui.reply.form {
+    margin-top: 10px;
 }
 
 /* */
