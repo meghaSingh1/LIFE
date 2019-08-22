@@ -3,16 +3,132 @@
 .header-logo:hover {
     background-color: white !important;
 }
-
-.menu .ui.floating.label {
-    top: -1em !important;
-    padding-left: 0.5em !important;
-    padding-right: 0.5em !important;
+.menu.secondary .bell.icon {
+    margin: 0 !important;
+}
+.menu.secondary .ui.floating.label {
+    padding: .3em 5% !important;
 }
 
-.right.menu {
-    position: absolute !important;
-    right: 0;
+.ui.menu.secondary {
+    padding: 0 5em !important;
+    margin: 0 !important;
+}
+
+.menu.secondary .item {
+    font-size: 1.15em !important;
+    font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+.menu.secondary .item:hover {
+    color: #2185d0 !important;
+    background-color: white !important;
+}
+
+.navbar-avatar {
+    width: 2.5em !important;
+    height: 2.5em !important;
+    border-radius: 50%;
+}
+
+.popup {
+    max-width: 500px !important;
+}
+
+.notification-list {
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
+}
+
+.notification-list .item {
+    padding: 0.5em 10px !important;
+    border-bottom: 1px solid #ccc;
+}
+
+.notification-list .list-item:hover {
+    background-color: #dbe1e6;
+}
+
+.notification-placeholder {
+    height: 30px;
+}
+/* Sidebar */
+
+/* Position and sizing of burger button */
+.bm-burger-button {
+    position: fixed;
+    width: 25px;
+    height: 25px;
+    left: 20px !important;
+    top: 20px !important;
+  }
+  
+/* Color/shape of burger icon bars */
+.bm-burger-bars {
+background: #373a47;
+}
+
+/* Color/shape of burger icon bars on hover*/
+.bm-burger-bars-hover {
+background: #a90000;
+}
+
+/* Position and sizing of clickable cross button */
+.bm-cross-button {
+height: 24px;
+width: 24px;
+}
+
+/* Color/shape of close button cross */
+.bm-cross {
+background: #bdc3c7;
+}
+
+/*
+Sidebar wrapper styles
+Note: Beware of modifying this element as it can break the animations - you should not need to touch it in most cases
+*/
+.bm-menu-wrap {
+position: absolute;
+height: 100%;
+}
+
+/* General sidebar styles */
+.bm-menu {
+background: white;
+border: 1px solid #ccc;
+padding: 2.5em 0 0;
+font-size: 1.15em;
+}
+
+/* Morph shape necessary with bubble or elastic */
+.bm-morph-shape {
+fill: #373a47;
+}
+
+/* Wrapper for item list */
+.bm-item-list {
+    color: #b8b7ad;
+}
+
+/* Individual item */
+.bm-item {
+    display: inline-block;
+    color: black;
+    padding: 0.3em 4em;
+}
+
+.bm-item i {
+    color: #2185d0;
+}
+
+.bm-item:hover {
+    background-color: #bbc3c9;
+    color: white;
+}
+
+/* Styling of overlay */
+.bm-overlay {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 /*  */
@@ -71,6 +187,9 @@ textarea {
 /* */
 
 /* Home */
+.ui.vertical.menu {
+    width: 100%;
+}
 
 .post-column {
     padding-top: 0 !important;
@@ -98,6 +217,11 @@ textarea {
 
 .post-item .column {
     padding: 0.5em !important;
+}
+
+.feed-container {
+    margin: 0 !important;
+    padding: 2em 5% !important;
 }
 
 .post-header {
@@ -135,8 +259,8 @@ textarea {
     background-color: #e9e5e5 !important;
 }
 
-.feed-container, .profile-container {
-    padding: 2em 5%;
+.profile-container {
+    padding: 2em 5% !important;
 }
 
 .items {

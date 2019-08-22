@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment
-from .serializers import UserSerializer, PostSerializer, CommentSerializer
+from .models import MyUser, Post, Comment, Notification
+from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +19,8 @@ import uuid
 def check_logged_in(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
-        return Response({'message': 'Authorized',}, status=status.HTTP_200_OK)
+        notifications =  Notification.objects.filter(user = request.user)
+        return Response({'message': 'Authorized', 'notifications': NotificationSerializer(notifications, many=True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -106,6 +107,8 @@ def follow_user(request):
                     request.user.followings.remove(target_user[0])
                 else:
                     request.user.followings.add(target_user[0])
+                    Notification.objects.create(user = target_user[0], from_user = request.user,
+                    content='followed you')
                 request.user.save()
                 return Response({'message': 'Success'}, status=status.HTTP_200_OK)
             return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -125,6 +128,8 @@ def like_a_post(request):
             if not request.user in target_post[0].liked_by.all():
                 target_post[0].liked_by.add(request.user)
                 target_post[0].save()
+                Notification.objects.create(user = target_post[0].user, from_user = request.user,
+                content='liked one of your posts.')
                 return Response({'message': 'Liked'}, status=status.HTTP_200_OK)
             else:
                 target_post[0].liked_by.remove(request.user)
@@ -144,6 +149,8 @@ def add_a_comment(request):
         target_post = Post.objects.filter(uuid = target_post_uuid)
         if len(target_post) == 1:
             comment = Comment.objects.create(user = request.user, content = data['content'], post = target_post[0])
+            Notification.objects.create(user = target_post[0].user, from_user = request.user,
+            content='commented on one of your posts.')
             return Response({'message': 'Success', 'comment': CommentSerializer(comment).data}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)

@@ -51,9 +51,34 @@ export default class Login extends Component {
         return (
             <div class='background'>
                 <Navbar history={this.props.history} profile_name={this.state.use}/>
-                <div class='container feed-container'>
-                    <div class="ui items">
-                        <PostList posts={this.state.user_posts} isHomePage={true} allowToPost={true} requestPosts={this.requestPosts} />
+                <div class='feed-container'>
+                    <div class='ui grid'>
+                    <div class='four wide column feed-column'>
+                        <div class="ui vertical menu">
+                        <a class="active item">
+                        <i style={{float: 'right'}} aria-hidden="true" class="home icon large"></i>
+                            Home
+                        </a>
+                        <a class="item">
+                        <i style={{float: 'right'}} aria-hidden="true" class="info icon large"></i>
+                            About
+                        </a>
+                        <a class="item">
+                            <i style={{float: 'right'}} aria-hidden="true" class="setting icon large"></i>
+                            Setting
+                        </a>
+                        <div class="item">
+                            <div class="ui icon input">
+                            <input type="text" placeholder="Search mail..." />
+                            <i aria-hidden="true" class="search icon"></i>
+                            </div>
+                        </div>
+                    </div></div>
+                    <div class='twelve wide column feed-column'>
+                        <div>
+                            <PostList posts={this.state.user_posts} isHomePage={true} allowToPost={true} requestPosts={this.requestPosts} />
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>

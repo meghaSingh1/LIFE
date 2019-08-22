@@ -1,4 +1,4 @@
-from .models import MyUser, Post, Comment
+from .models import MyUser, Post, Comment, Notification
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -59,3 +59,10 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['uuid', 'user', 'text_content', 'date_created', 'liked_by', 'comments']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    from_user = UserSerializer()
+    class Meta:
+        model = Notification
+        fields = ['user', 'from_user', 'content', 'is_read', 'url']

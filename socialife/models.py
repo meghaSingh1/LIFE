@@ -108,3 +108,10 @@ class Comment(models.Model):
     user = models.ForeignKey(MyUser, on_delete = models.CASCADE)
     content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
+
+class Notification(models.Model):
+    user = models.ForeignKey(MyUser, on_delete = models.CASCADE, related_name = 'notifications')
+    from_user = models.ForeignKey(MyUser, on_delete = models.CASCADE, related_name = 'notification_to')
+    content = models.TextField()
+    is_read = models.BooleanField(default = False)
+    url = models.URLField(default = '/')
