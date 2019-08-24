@@ -1,3 +1,12 @@
+#root {
+    height: 100% !important;
+    background-color: #e9e5e5 !important;
+}
+
+.background {
+    background-color: #e9e5e5 !important;
+}
+
 /* Header */
 
 .header-logo:hover {
@@ -13,11 +22,13 @@
 .ui.menu.secondary {
     padding: 0 5em !important;
     margin: 0 !important;
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
 }
 
 .menu.secondary .item {
     font-size: 1.15em !important;
     font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    padding: .2em 1em !important;
 }
 
 .menu.secondary .item:hover {
@@ -29,6 +40,21 @@
     width: 2.5em !important;
     height: 2.5em !important;
     border-radius: 50%;
+}
+
+.navbar-user-menu {
+    width: 12em !important;
+}
+
+.navbar-user-menu .item {
+    padding: 0.5em 10px !important;
+    font-size: 1.1em;
+    z-index: 100;
+}
+
+.navbar-user-menu-placeholder {
+    font-weight: 600 !important;
+    height: 30px;
 }
 
 .popup {
@@ -50,6 +76,7 @@
 
 .notification-placeholder {
     height: 30px;
+    text-align: center;
 }
 /* Sidebar */
 
@@ -219,7 +246,7 @@ textarea {
     padding: 0.5em !important;
 }
 
-.feed-container {
+.feed-container, .chat-container {
     margin: 0 !important;
     padding: 2em 5% !important;
 }
@@ -229,9 +256,8 @@ textarea {
 }
 
 .post-header .post-user-name {
-    font-family: 'Helvetica' !important;
-    font-weight: 700 !important;
-    font-size: 1.1em;
+    font-weight: 600 !important;
+    font-size: 1.2em;
     color: rgba(0,0,0,.85);
 }
 
@@ -253,10 +279,6 @@ textarea {
     font-size: 1em;
     line-height: 1.4285em;
     color: rgba(0,0,0,.87);
-}
-
-.background {
-    background-color: #e9e5e5 !important;
 }
 
 .profile-container {
@@ -288,8 +310,8 @@ textarea {
     margin-right: auto;
 }
 
-.item .header {
-    font-family: 'Helvetica' !important;
+.profile-container .header {
+    font-family: Tahoma !important;
 }
 
 .profile-container .card .extra {
@@ -299,3 +321,71 @@ textarea {
 .profile-container .card .extra button {
     margin: 15px 0 !important;
 }
+
+/* Chat */
+
+.chat-message-right {
+    text-align: right;
+}
+
+.chat-message-right .content {
+    display: inline-block !important;
+}
+
+.item .header {
+    font-family: Verdana, Geneva, Tahoma, sans-serif !important;
+}
+
+.chat-wrapper {
+    height: 100% !important;
+}
+
+.chat-container {
+    height: 100% !important;
+    background-color: #e9e5e5 !important;
+}
+
+.chat-column-2 {
+    background-color: white;
+    height: 100% !important;
+    box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+    border-radius: .258rem;
+}
+
+.chat-column-2 .avatar {
+    width: 3em !important;
+    height: 3em !important;
+    margin: 0 .5em !important;
+}
+
+.chat-column-2-header {
+    margin-left:-1rem;
+    margin-right: -1rem;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+
+.chat-column-2-header h3 {
+    padding: .3em 1em;
+}
+
+.chat-message-section {
+    height: 80%;
+    overflow: auto;
+}
+/*
+.send-message-form-wrapper {
+    position: absolute !important;
+    bottom: 0;
+    right: 0;
+    width: 100% !important;
+    height: 10em;
+}
+
+.send-message-form {
+    position: absolute !important;
+    bottom: 0;
+    right: 0;
+} */
+
+/*  */

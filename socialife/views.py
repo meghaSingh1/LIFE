@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification
-from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer
+from .models import MyUser, Post, Comment, Notification, ChatRoom
+from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +12,20 @@ from .middlewares import check_user_with_token
 
 from django.db.models import Q
 import uuid
+from django.core.files.storage import FileSystemStorage
+
+import os
+
+from django.conf import settings
+
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
+import json
+
+def room(request, room_name):
+    return render(request, 'chat.html', {
+        'room_name_json': mark_safe(json.dumps(room_name))
+    })
 
 
 @api_view(['POST'])
@@ -20,9 +34,39 @@ def check_logged_in(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
         notifications =  Notification.objects.filter(user = request.user)
-        return Response({'message': 'Authorized', 'notifications': NotificationSerializer(notifications, many=True).data}, status=status.HTTP_200_OK)
+        return Response({'message': 'Authorized', 'user': UserSerializer(request.user).data, 'notifications': NotificationSerializer(notifications, many=True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def enter_chat_room(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        target_profile_name = data['profile_name']
+        target_user = MyUser.objects.filter(profile_name = target_profile_name)
+        if len(target_user) == 1:
+            # room = ChatRoom.objects.filter(Q(users__icontains = request.user) & Q(users__icontains = target_user[0]) & Q(is_group_chat = False))
+            rooms = request.user.chat_rooms.all()
+            existed_chat_room = None
+            for room in rooms:
+                if target_user[0] in room.users.all() and room.is_group_chat == False:
+                    existed_chat_room = room
+                    break
+            if existed_chat_room != None:
+                return Response({'message': 'Success', 'room': ChatRoomSerializer(existed_chat_room).data}, status=status.HTTP_200_OK)
+            else:
+                new_room = ChatRoom.objects.create()
+                new_room.users.add(request.user)
+                new_room.users.add(target_user[0])
+                new_room.save()
+                return Response({'message': 'Created', 'room': ChatRoomSerializer(new_room).data}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -108,7 +152,7 @@ def follow_user(request):
                 else:
                     request.user.followings.add(target_user[0])
                     Notification.objects.create(user = target_user[0], from_user = request.user,
-                    content='followed you')
+                    content='followed you', url='/profile/' + request.user.profile_name)
                 request.user.save()
                 return Response({'message': 'Success'}, status=status.HTTP_200_OK)
             return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -154,3 +198,25 @@ def add_a_comment(request):
             return Response({'message': 'Success', 'comment': CommentSerializer(comment).data}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def read_notifications(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        Notification.objects.filter(user = request.user).update(is_read = True)
+        return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_picture(request):
+    user_email = request.user.email
+    request_email = request.POST['email']
+    if user_email == request_email:
+        image = request.FILES['file']
+        print(request.POST)
+        request.user.avatar = request.FILES['file']
+        request.user.save()
+    return Response({'message': 'Success'}, status=status.HTTP_200_OK)

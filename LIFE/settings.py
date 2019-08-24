@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'socialife',
     'corsheaders',
     'rest_framework',
+    'channels'
 ]
 
 REST_FRAMEWORK = {
@@ -90,8 +91,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'LIFE.wsgi.application'
+ASGI_APPLICATION = 'LIFE.routing.application'
 
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": ['redis://localhost:6379/4'],
+        },
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
@@ -144,3 +153,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

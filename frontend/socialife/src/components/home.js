@@ -3,6 +3,8 @@ import axios from 'axios'
 import {Link} from 'react-router-dom'
 import Navbar from './navbar'
 import PostList from './postList'
+import ImageUploader from 'react-images-upload'
+
 
 export default class Login extends Component {
     constructor(props) {
@@ -11,6 +13,7 @@ export default class Login extends Component {
           email: '',
           text_content: null,
           user_posts: null,
+          pictures: []
       }
     }
 
@@ -45,9 +48,31 @@ export default class Login extends Component {
                 this.setState({user_posts: res.data.user_posts});
         }).catch(err => {})
     }
-  
-    render() {
 
+    onDrop = (pictureFiles) => {
+        const email = localStorage.getItem('email');
+        const token = localStorage.getItem('token');
+        if(pictureFiles.length > 0) {
+            console.log(pictureFiles[0]);
+
+            let formData = new FormData(); 
+            formData.append('file', pictureFiles[0]); 
+            formData.append('email', email);
+            for (var pair of formData.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+            axios.post('http://127.0.0.1:8000/api/upload_picture', formData, {headers: 
+            {'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': "Bearer " + token}}).then(res => {
+            }).catch(err => console.log(err));
+        }
+    }
+
+    clickWebSocket = () => {
+
+        console.log(this.state.message);
+        console.log('ha')
+    }
+
+    render() {
         return (
             <div class='background'>
                 <Navbar history={this.props.history} profile_name={this.state.use}/>
@@ -55,10 +80,14 @@ export default class Login extends Component {
                     <div class='ui grid'>
                     <div class='four wide column feed-column'>
                         <div class="ui vertical menu">
-                        <a class="active item">
-                        <i style={{float: 'right'}} aria-hidden="true" class="home icon large"></i>
-                            Home
-                        </a>
+                        <ImageUploader class='item'
+                            withIcon={true} singleImage={true} withLabel={true}
+                            buttonText='Choose images'
+                            onChange={this.onDrop}
+                            imgExtension={['.jpg', '.gif', '.png', '.gif']}
+                            maxFileSize={5242880} withPreview={true}
+                        />
+                        <button onClick={this.clickWebSocket} class='ui button'>Websocket</button>
                         <a class="item">
                         <i style={{float: 'right'}} aria-hidden="true" class="info icon large"></i>
                             About

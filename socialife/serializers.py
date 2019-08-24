@@ -1,4 +1,4 @@
-from .models import MyUser, Post, Comment, Notification
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = MyUser
-        fields = ['email', 'first_name', 'last_name', 'profile_name', 'get_followings', 'followers']
+        fields = ['email', 'first_name', 'last_name', 'profile_name', 'get_followings', 'followers', 'avatar']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -66,3 +66,16 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['user', 'from_user', 'content', 'is_read', 'url']
+
+class ChatRoomSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
+    class Meta:
+        model = ChatRoom
+        fields = ['users', 'uuid', 'is_group_chat']
+
+class MessageSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    chat_room = ChatRoomSerializer()
+    class Meta:
+        model = Message
+        fields = ['user', 'chat_room', 'date_created', 'content']

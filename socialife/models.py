@@ -70,6 +70,12 @@ class MyUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['date_of_birth', 'last_name', 'first_name', 'gender']
 
+    def user_directory_path(instance, filename):
+        # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+        return 'user_{0}/{1}'.format(instance.profile_name, filename)
+
+    avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True)
+
     def __str__(self):
         return self.profile_name
 
@@ -115,3 +121,17 @@ class Notification(models.Model):
     content = models.TextField()
     is_read = models.BooleanField(default = False)
     url = models.URLField(default = '/')
+
+    def __str__(self):
+        return self.user.profile_name
+
+class ChatRoom(models.Model):
+    users = models.ManyToManyField(MyUser, related_name='chat_rooms')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name='UUID')
+    is_group_chat = models.BooleanField(default = False)
+
+class Message(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name = 'messages', blank=True)
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True)
+    content = models.TextField()
