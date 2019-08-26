@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '6@ge#t2b56lklz)(7%*g=whnz#au6t7cj!yp1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['socialifenetwork.herokuapp.com']
 
 
 # Application definition
