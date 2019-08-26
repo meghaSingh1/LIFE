@@ -1,2 +1,2 @@
 # LIFE
- Social Network using Django + React
+Backend API using Django for a social network project (Django + ReactJS)
