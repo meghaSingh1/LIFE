@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY', '6@ge#t2b56lklz)(7%*g=whnz#au6t7cj!yp1=ug^@+4h_mz5*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['socialifenetwork.herokuapp.com']
 
