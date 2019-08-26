@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('chat/<str:room_name>/', views.room, name='room'),
     path('api/enter_chat_room', views.enter_chat_room, name='enter_chat_room'),
+    # path('api/notice_chat_room', views.enter_chat_room, name='notice_chat_room'),
     path('api/user_sign_up', views.user_sign_up, name='user_sign_up'),
     path('api/check_logged_in', views.check_logged_in, name='check_logged_in'),
     path('api/create_new_post', views.create_new_post, name='create_new_post'),

@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification, ChatRoom
-from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message
+from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -32,11 +32,35 @@ def room(request, room_name):
 @permission_classes([IsAuthenticated])
 def check_logged_in(request):
     user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
     if user_is_valid:
         notifications =  Notification.objects.filter(user = request.user)
-        return Response({'message': 'Authorized', 'user': UserSerializer(request.user).data, 'notifications': NotificationSerializer(notifications, many=True).data}, status=status.HTTP_200_OK)
+        chat_rooms = request.user.chat_rooms.all().order_by('-last_interaction')
+        try:
+            if data['chat_room'] == True:
+                for room in chat_rooms:
+                    room.notice_by_users.add(request.user)
+                    room.save()
+                chat_rooms = request.user.chat_rooms.all().order_by('-last_interaction')
+        finally:
+            messages = Message.objects.filter(chat_room__in=chat_rooms).order_by('-date_created')
+            return Response({'message': 'Authorized', 'user': UserSerializer(request.user).data,
+            'notifications': NotificationSerializer(notifications, many=True).data,
+            'messages': MessageSerializer(messages, many=True).data,
+            'chat_rooms': ChatRoomSerializer(chat_rooms, many=True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def notice_chat_room(request):
+#     user_is_valid = check_user_with_token(request)
+#     if user_is_valid:
+#         chat_rooms = request.user.chat_rooms.all()
+
+#         return Response({'message': 'Success',}, status=status.HTTP_200_OK)
+#     else:
+#         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

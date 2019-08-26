@@ -69,13 +69,15 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True)
+    notice_by_users = UserSerializer(many=True)
     class Meta:
         model = ChatRoom
-        fields = ['users', 'uuid', 'is_group_chat']
+        fields = ['users', 'uuid', 'is_group_chat', 'notice_by_users', 'last_interaction']
 
 class MessageSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    read_by_users = UserSerializer(many = True)
     chat_room = ChatRoomSerializer()
     class Meta:
         model = Message
-        fields = ['user', 'chat_room', 'date_created', 'content']
+        fields = ['user', 'read_by_users', 'chat_room', 'date_created', 'content']

@@ -127,11 +127,14 @@ class Notification(models.Model):
 
 class ChatRoom(models.Model):
     users = models.ManyToManyField(MyUser, related_name='chat_rooms')
+    notice_by_users = models.ManyToManyField(MyUser, related_name = 'chat_room_noticed')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name='UUID')
     is_group_chat = models.BooleanField(default = False)
+    last_interaction = models.DateTimeField(auto_now_add=True)
 
 class Message(models.Model):
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name = 'messages', blank=True)
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name = 'messages')
+    read_by_users = models.ManyToManyField(MyUser, related_name = 'read_messages')
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     content = models.TextField()

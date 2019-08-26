@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
-from .models import MyUser, Post, Notification
+from .models import MyUser, Post, Notification, ChatRoom
 
 
 class UserCreationForm(forms.ModelForm):
@@ -84,8 +84,12 @@ class PostAdmin(admin.ModelAdmin):
 
 class NotificationAdmin(admin.ModelAdmin):
     pass
+
+class ChatRoomAdmin(admin.ModelAdmin):
+    pass
 admin.site.register(Post, PostAdmin)
 admin.site.register(Notification, NotificationAdmin)
+admin.site.register(ChatRoom, ChatRoomAdmin)
 # Now register the new UserAdmin...
 admin.site.register(MyUser, UserAdmin)
 # ... and, since we're not using Django's built-in permissions,
