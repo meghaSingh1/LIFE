@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from datetime import timedelta
+import dj_database_url
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -22,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '6@ge#t2b56lklz)(7%*g=whnz#au6t7cj!yp1=ug^@+4h_mz5*'
+SECRET_KEY = os.environ.get('SECRET_KEY', '6@ge#t2b56lklz)(7%*g=whnz#au6t7cj!yp1=ug^@+4h_mz5*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -93,14 +94,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'LIFE.wsgi.application'
 ASGI_APPLICATION = 'LIFE.routing.application'
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": ['redis://localhost:6379/4'],
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": ['redis://localhost:6379/4'],
+#         },
+#     },
+# }
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
@@ -115,12 +116,26 @@ CHANNEL_LAYERS = {
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'mydatabase',
-    }
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+        "symmetric_encryption_keys": [SECRET_KEY],
+    },
 }
+
+DATABASES = {
+    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': 'mydatabase',
+#     }
+# }
 
 AUTH_USER_MODEL = 'socialife.MyUser'
 
