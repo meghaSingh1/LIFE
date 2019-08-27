@@ -141,7 +141,7 @@ AUTH_USER_MODEL = 'socialife.MyUser'
 
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
 DROPBOX_OAUTH2_TOKEN = os.environ.get('DROPBOX_OAUTH2_TOKEN')
-DROPBOX_ROOT_PATH = 'socialife'
+DROPBOX_ROOT_PATH = '/socialife/'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
