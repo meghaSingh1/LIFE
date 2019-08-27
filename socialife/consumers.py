@@ -94,7 +94,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         token = data['token']
 
 
-        url = "http://127.0.0.1:8000/api/check_logged_in"
+        url = "/api/check_logged_in"
 
         payload = {"email": email, 'for_channels': 'channels'}
 
