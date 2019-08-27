@@ -74,8 +74,8 @@ class MyUser(AbstractBaseUser):
         # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
         return 'user_{0}/{1}'.format(instance.profile_name, filename)
 
-    avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True, default='default/default-avatar.png')
-
+    # avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True, default='default/default-avatar.png')
+    avatar = models.URLField(default='https://i.ibb.co/vxKKNwk/tt-avatar-small.jpg')
     def __str__(self):
         return self.profile_name
 
