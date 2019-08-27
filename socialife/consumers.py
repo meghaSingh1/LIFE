@@ -94,7 +94,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         token = data['token']
 
 
-        url = "/api/check_logged_in"
+        url = "https://socialifenetwork.herokuapp.com/api/check_logged_in"
 
         payload = {"email": email, 'for_channels': 'channels'}
 
