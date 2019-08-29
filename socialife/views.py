@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage
 from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -17,15 +17,10 @@ from django.core.files.storage import FileSystemStorage
 import os
 
 from django.conf import settings
+from .search_engine import Search
 
-from django.shortcuts import render
-from django.utils.safestring import mark_safe
-import json
-
-def room(request, room_name):
-    return render(request, 'chat.html', {
-        'room_name_json': mark_safe(json.dumps(room_name))
-    })
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 @api_view(['POST'])
@@ -34,7 +29,7 @@ def check_logged_in(request):
     user_is_valid = check_user_with_token(request)
     data = json.loads(request.body.decode('utf-8'))
     if user_is_valid:
-        notifications =  Notification.objects.filter(user = request.user)
+        notifications =  Notification.objects.filter(user = request.user).order_by('-pk')
         chat_rooms = request.user.chat_rooms.all().order_by('-last_interaction')
         try:
             if data['chat_room'] == True:
@@ -50,17 +45,6 @@ def check_logged_in(request):
             'chat_rooms': ChatRoomSerializer(chat_rooms, many=True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def notice_chat_room(request):
-#     user_is_valid = check_user_with_token(request)
-#     if user_is_valid:
-#         chat_rooms = request.user.chat_rooms.all()
-
-#         return Response({'message': 'Success',}, status=status.HTTP_200_OK)
-#     else:
-#         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -100,7 +84,7 @@ def create_new_post(request):
     if user_is_valid:
         text_content = data['text_content']
         new_post = Post.objects.create(text_content = text_content, user = request.user)
-        return Response({'message': 'Success'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Success', 'post': PostSerializer(new_post).data}, status=status.HTTP_201_CREATED)
     else:
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -175,8 +159,13 @@ def follow_user(request):
                     request.user.followings.remove(target_user[0])
                 else:
                     request.user.followings.add(target_user[0])
-                    Notification.objects.create(user = target_user[0], from_user = request.user,
+                    notification = Notification.objects.create(user = target_user[0], from_user = request.user,
                     content='followed you', url='/profile/' + request.user.profile_name)
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.send)(target_user[0].channel_name, {
+                        "type": "new_notification",
+                        'notification': NotificationSerializer(notification).data
+                    })
                 request.user.save()
                 return Response({'message': 'Success'}, status=status.HTTP_200_OK)
             return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -196,8 +185,14 @@ def like_a_post(request):
             if not request.user in target_post[0].liked_by.all():
                 target_post[0].liked_by.add(request.user)
                 target_post[0].save()
-                Notification.objects.create(user = target_post[0].user, from_user = request.user,
-                content='liked one of your posts.')
+                if request.user != target_post[0].user:
+                    notification = Notification.objects.create(user = target_post[0].user, from_user = request.user,
+                    content='liked one of your posts.')
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
+                        "type": "new_notification",
+                        'notification': NotificationSerializer(notification).data
+                    })
                 return Response({'message': 'Liked'}, status=status.HTTP_200_OK)
             else:
                 target_post[0].liked_by.remove(request.user)
@@ -217,8 +212,14 @@ def add_a_comment(request):
         target_post = Post.objects.filter(uuid = target_post_uuid)
         if len(target_post) == 1:
             comment = Comment.objects.create(user = request.user, content = data['content'], post = target_post[0])
-            Notification.objects.create(user = target_post[0].user, from_user = request.user,
-            content='commented on one of your posts.')
+            if request.user != target_post[0].user:
+                notification = Notification.objects.create(user = target_post[0].user, from_user = request.user,
+                content='commented on one of your posts.')
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
+                    "type": "new_notification",
+                    'notification': NotificationSerializer(notification).data
+                })
             return Response({'message': 'Success', 'comment': CommentSerializer(comment).data}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -239,8 +240,27 @@ def upload_picture(request):
     user_email = request.user.email
     request_email = request.POST['email']
     if user_email == request_email:
-        image = request.FILES['file']
-        print(request.POST)
-        request.user.avatar = request.FILES['file']
-        request.user.save()
+        if request.POST['type'] == 'avatar':
+            request.user.avatar = request.FILES['file']
+            request.user.save()
+        else:
+            post = Post.objects.filter(uuid = request.POST['uuid'])
+            if len(post) > 0:
+                for image in request.FILES.getlist('file'):
+                    PostImage.objects.create(image = image, post = post[0])
     return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def search(request):
+    data = json.loads(request.body.decode('utf-8'))
+    query = data['query']
+    search_type = data['search_type']
+    completion = data['completion']
+    search = Search()
+    if search_type == 'profile_name':
+        search = search.search_by_profile_name(query, completion)
+    elif search_type == 'name':
+        search = search.search_by_name(query)
+    if search.result != None:
+        return Response({'message': 'Success', 'result': UserSerializer(search.result, many=True).data}, status=status.HTTP_200_OK)
+    return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)

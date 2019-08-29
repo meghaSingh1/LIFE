@@ -74,8 +74,9 @@ class MyUser(AbstractBaseUser):
         # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
         return 'user_{0}/{1}'.format(instance.profile_name, filename)
 
-    # avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True, default='default/default-avatar.png')
-    avatar = models.URLField(default='https://i.ibb.co/vxKKNwk/tt-avatar-small.jpg')
+    avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True, default='default/default-avatar.png')
+    channel_name = models.CharField(max_length=100, blank=True)
+
     def __str__(self):
         return self.profile_name
 
@@ -101,6 +102,7 @@ class MyUser(AbstractBaseUser):
     def __unicode__(self):
         return "{0}".format(self.title)
 
+
 class Post(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name='UUID')
@@ -108,6 +110,16 @@ class Post(models.Model):
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
     liked_by = models.ManyToManyField(MyUser, related_name = 'liked_by')
+
+class PostImage(models.Model):
+    def user_directory_path(instance, filename):
+        return 'user_{0}/{1}/{2}'.format(instance.post.user.profile_name,instance.post.uuid,filename)
+
+    def __str__(self):
+        return self.image
+        
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=user_directory_path, max_length=100)
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='comments')

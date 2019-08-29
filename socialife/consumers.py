@@ -19,18 +19,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-        print(self.channel_name)
+        print(self.room_group_name)
         await self.accept()
 
         # Send message to room group
     async def chat_message(self, event):
         message = event['message']
         uuid = event['uuid']
+        last_messages = event['last_messages']
+        print(uuid)
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
             'message': message,
             'uuid': uuid,
+            'last_messages': last_messages
         }))
 
     # Fetch message for room group
@@ -85,6 +88,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message.save()
         return message
 
+    @database_sync_to_async
+    def get_last_messages(self, user):
+        chat_rooms = user.chat_rooms.all().order_by('-last_interaction')
+        messages = Message.objects.filter(chat_room__in=chat_rooms).order_by('-date_created')
+        return messages
+
     # Receive message from WebSocket
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -94,7 +103,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         token = data['token']
 
 
-        url = "https://socialifenetwork.herokuapp.com/api/check_logged_in"
+        # url = "https://socialifenetwork.herokuapp.com/api/check_logged_in"
+        url = "http://localhost:8000/api/check_logged_in"
 
         payload = {"email": email, 'for_channels': 'channels'}
 
@@ -114,15 +124,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     if data['type'] == 'chat_message':
                         # Save message to db
                         saved_message = await self.save_message(user[0], data['message'], room[0])
+                        last_messages = await self.get_last_messages(user[0])
                         # Send message to room group
                         await self.channel_layer.group_send(
                             self.room_group_name,
                             {
                                 'type': 'chat_message',
                                 'message': MessageSerializer(saved_message).data,
+                                'last_messages': MessageSerializer(last_messages, many=True).data,
                                 'uuid': str(room[0].uuid)
                             }
                         )
+                        channel_layer = get_channel_layer()
+                        for room_user in room[0].users.all():
+                            if room_user != user[0]:
+                                await channel_layer.send(room_user.channel_name, {
+                                    "type": "new_message",
+                                    'uuid': str(room[0].uuid),
+                                    'last_messages': MessageSerializer(last_messages, many=True).data,
+                                })
+
                     elif data['type'] == 'fetch_messages':
                         messages = await self.get_messages(room[0], user[0])
 
@@ -141,3 +162,65 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'messages': 'Error'
                     }
                 )
+
+class GlobalConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = None
+        await self.accept()
+
+    async def new_message(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'new_message',
+            'uuid': event['uuid'],
+            'last_messages': event['last_messages']
+        }))
+
+    async def new_notification(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'new_notification',
+            'notification': event['notification']
+        }))
+
+    async def error(self, event):
+        pass
+
+    async def disconnect(self, close_code):
+        await self.user_channel('disconnect')
+
+    @database_sync_to_async
+    def get_user(self, user_profile_name):
+        return MyUser.objects.filter(profile_name=user_profile_name)
+
+    @database_sync_to_async
+    def user_channel(self, channel_type):
+        if self.user != None:
+            if channel_type == 'connect':
+                self.user.channel_name = self.channel_name
+            elif channel_type == 'disconnect':
+                self.user.channel_name = ''
+            self.user.save()
+
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if data['type'] == 'global_socket':
+            email = data['email']
+            token = data['token']
+
+            # url = "https://socialifenetwork.herokuapp.com/api/check_logged_in"
+            url = "http://localhost:8000/api/check_logged_in"
+
+            payload = {"email": email, 'for_channels': 'channels'}
+
+            header = {"Content-type": "application/json",
+                    'Authorization': "Bearer " + token}
+
+
+            response = await requests.post(url, data=json.dumps(payload), headers=header)
+            response_json = response.json()
+
+            if response_json['message'] == 'Authorized':
+                user = await self.get_user(response_json['user']['profile_name'])
+                if len(user) > 0:
+                    self.user = user[0]
+                    await self.user_channel('connect')
