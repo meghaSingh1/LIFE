@@ -102,6 +102,12 @@ class MyUser(AbstractBaseUser):
     def __unicode__(self):
         return "{0}".format(self.title)
 
+class UserInfo(models.Model):
+    user = models.OneToOneField(MyUser, on_delete=models.CASCADE, related_name = "bio")
+    bio = models.TextField(blank = True)
+    job = models.CharField(max_length = 50, blank = True)
+    location = models.CharField(max_length = 50, blank = True)
+    website = models.URLField(max_length = 100, blank = True)
 
 class Post(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')

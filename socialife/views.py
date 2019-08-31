@@ -39,10 +39,12 @@ def check_logged_in(request):
                 chat_rooms = request.user.chat_rooms.all().order_by('-last_interaction')
         finally:
             messages = Message.objects.filter(chat_room__in=chat_rooms).order_by('-date_created')
+            followings = request.user.followings.all()
             return Response({'message': 'Authorized', 'user': UserSerializer(request.user).data,
             'notifications': NotificationSerializer(notifications, many=True).data,
             'messages': MessageSerializer(messages, many=True).data,
-            'chat_rooms': ChatRoomSerializer(chat_rooms, many=True).data}, status=status.HTTP_200_OK)
+            'chat_rooms': ChatRoomSerializer(chat_rooms, many=True).data,
+            'followings': UserSerializer(followings, many=True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -134,15 +136,8 @@ def get_user_profile(request):
     if len(user) == 1:
         user_serializer = UserSerializer(user[0]).data
         user_posts = Post.objects.filter(user = user[0]).order_by('-date_created')
-        is_in_your_following = False
-        if data['email'] != -1:
-            request_user = MyUser.objects.filter(email = data['email'])
-            print(data['email'])
-            if len(request_user) == 1:
-                if(user[0] in request_user[0].followings.all()):
-                    is_in_your_following = True
         post_serializer = PostSerializer(user_posts, many = True).data
-        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer, 'is_in_your_following': is_in_your_following}, status=status.HTTP_200_OK)
+        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer}, status=status.HTTP_200_OK)
     return Response({'message': 'Failed'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
@@ -200,6 +195,22 @@ def like_a_post(request):
                 return Response({'message': 'Unliked'}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_a_post(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        target_post_uuid = data['post_uuid']
+        target_post = Post.objects.filter(uuid = target_post_uuid)
+        if len(target_post) == 1:
+            if target_post[0].user == request.user:
+                target_post[0].delete()
+                return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
