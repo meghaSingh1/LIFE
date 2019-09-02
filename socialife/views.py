@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile, Tag
 from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -21,6 +21,7 @@ from .search_engine import Search
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.utils import timezone
 
 
 @api_view(['POST'])
@@ -86,6 +87,19 @@ def create_new_post(request):
     if user_is_valid:
         text_content = data['text_content']
         new_post = Post.objects.create(text_content = text_content, user = request.user)
+        tags = data['tags']
+        if len(tags) > 0:
+            for tag in tags:
+                existed_tag = Tag.objects.filter(name = tag)
+                if len(existed_tag) > 0:
+                    new_post.tags.add(existed_tag)
+                    existed_tag.most_recent = timezone.now()
+                    existed_tag.save()
+                else:
+                    new_tag = Tag.objects.create(name = tag)
+                    new_post.tags.add(new_tag)
+                new_post.save()
+
         return Response({'message': 'Success', 'post': PostSerializer(new_post).data}, status=status.HTTP_201_CREATED)
     else:
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -113,15 +127,6 @@ def check_profile_name_availability(request):
 
 @api_view(['POST'])
 def user_sign_up(request):
-    # data = json.loads(request.body.decode('utf-8'))
-    # email = data['email']
-    # password = data['password']
-    # first_name = data['first_name']
-    # last_name = data['last_name']
-    # gender = data['gender']
-    # profile_name = data['profile_name']
-    # date_of_birth = data['year'] + '-' + data['month'] + '-' + data['date']
-
     email = request.POST['email']
     password = request.POST['password']
     first_name = request.POST['first_name']
@@ -135,7 +140,7 @@ def user_sign_up(request):
     user.set_password(password)
     user.save()
     UserAvatar.objects.create(user = user, image = request.FILES['file'])
-    
+
     return Response({'message': 'Available'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])

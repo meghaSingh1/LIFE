@@ -125,8 +125,12 @@ def create_user_avatar(sender, **kwargs):
     if kwargs['created']:
         user = kwargs['instance'].user
         for avatar in user.avatar.all():
-            if avatar != kwargs['instance'] :
+            if avatar != kwargs['instance']:
                 avatar.delete()
+
+class Tag(models.Model):
+    name = models.CharField(max_length = 100)
+    most_recent = models.DateTimeField(auto_now_add = True)
 
 class Post(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -135,6 +139,7 @@ class Post(models.Model):
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
     liked_by = models.ManyToManyField(MyUser, related_name = 'liked_by')
+    tags = models.ManyToManyField(Tag, related_name = 'posts')
 
 class PostImage(models.Model):
     def user_directory_path(instance, filename):
@@ -145,6 +150,7 @@ class PostImage(models.Model):
         
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to=user_directory_path, max_length=100)
+
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='comments')
