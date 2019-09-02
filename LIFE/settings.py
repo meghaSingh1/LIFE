@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from datetime import timedelta
-import dj_database_url
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -28,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '6@ge#t2b56lklz)(7%*g=whnz#au6t7cj!yp1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['socialifenetwork.herokuapp.com', '127.0.0.1', 'localhost']
+# ALLOWED_HOSTS = ['socialifenetwork.herokuapp.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -119,9 +118,6 @@ ASGI_APPLICATION = 'LIFE.routing.application'
 #     },
 # }
 
-# DATABASES = {
-#     'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-# }
 
 DATABASES = {
     'default': {

@@ -3,6 +3,8 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 import uuid
+from django.dispatch import receiver
+from django.db.models.signals import post_save, pre_save
 
 
 class MyUserManager(BaseUserManager):
@@ -74,7 +76,6 @@ class MyUser(AbstractBaseUser):
         # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
         return 'user_{0}/{1}'.format(instance.profile_name, filename)
 
-    avatar = models.ImageField(upload_to=user_directory_path, max_length=100, blank=True, default='default/default-avatar.png')
     channel_name = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
@@ -102,12 +103,30 @@ class MyUser(AbstractBaseUser):
     def __unicode__(self):
         return "{0}".format(self.title)
 
-class UserInfo(models.Model):
-    user = models.OneToOneField(MyUser, on_delete=models.CASCADE, related_name = "bio")
+class UserProfile(models.Model):
+    user = models.OneToOneField(MyUser, on_delete=models.CASCADE, related_name = "profile")
     bio = models.TextField(blank = True)
     job = models.CharField(max_length = 50, blank = True)
     location = models.CharField(max_length = 50, blank = True)
     website = models.URLField(max_length = 100, blank = True)
+
+@receiver(post_save, sender=MyUser)
+def create_or_update_user(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user = instance)
+    instance.profile.save()
+
+class UserAvatar(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name = 'avatar')
+    image = models.ImageField(upload_to = 'avatar')
+
+@receiver(post_save, sender=UserAvatar)
+def create_user_avatar(sender, **kwargs):
+    if kwargs['created']:
+        user = kwargs['instance'].user
+        for avatar in user.avatar.all():
+            if avatar != kwargs['instance'] :
+                avatar.delete()
 
 class Post(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')

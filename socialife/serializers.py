@@ -1,4 +1,4 @@
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -37,12 +37,24 @@ class RecursiveField(serializers.Serializer):
 #         followers = MyUser.objects.filter(instance__in = followings)
 #         return value.__class__.__name__
 
+# class UserProfileSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserProfile
+#         fields = ['bio', 'location', 'job', 'website']
+class UserAvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAvatar
+        fields = ['image']
+
+
 class UserSerializer(serializers.ModelSerializer):
     followers = serializers.StringRelatedField(many = True)
-    
+    # profile = UserProfileSerializer()
+    avatar = UserAvatarSerializer(many = True)
     class Meta:
         model = MyUser
         fields = ['email', 'first_name', 'last_name', 'profile_name', 'get_followings', 'followers', 'avatar']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()

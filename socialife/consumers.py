@@ -137,7 +137,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         )
                         channel_layer = get_channel_layer()
                         for room_user in room[0].users.all():
-                            if room_user != user[0]:
+                            if room_user != user[0] and room_user.channel_name != '':
                                 await channel_layer.send(room_user.channel_name, {
                                     "type": "new_message",
                                     'uuid': str(room[0].uuid),

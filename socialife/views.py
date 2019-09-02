@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile
 from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -113,19 +113,29 @@ def check_profile_name_availability(request):
 
 @api_view(['POST'])
 def user_sign_up(request):
-    data = json.loads(request.body.decode('utf-8'))
-    email = data['email']
-    password = data['password']
-    first_name = data['first_name']
-    last_name = data['last_name']
-    gender = data['gender']
-    profile_name = data['profile_name']
-    date_of_birth = data['year'] + '-' + data['month'] + '-' + data['date']
+    # data = json.loads(request.body.decode('utf-8'))
+    # email = data['email']
+    # password = data['password']
+    # first_name = data['first_name']
+    # last_name = data['last_name']
+    # gender = data['gender']
+    # profile_name = data['profile_name']
+    # date_of_birth = data['year'] + '-' + data['month'] + '-' + data['date']
 
+    email = request.POST['email']
+    password = request.POST['password']
+    first_name = request.POST['first_name']
+    last_name = request.POST['last_name']
+    gender = request.POST['gender']
+    profile_name = request.POST['profile_name']
+    date_of_birth = request.POST['year'] + '-' + request.POST['month'] + '-' + request.POST['date']
+    
     user = MyUser.objects.create(email=email,first_name=first_name,
     last_name=last_name,gender=gender.capitalize(),profile_name=profile_name, date_of_birth=date_of_birth)
     user.set_password(password)
     user.save()
+    UserAvatar.objects.create(user = user, image = request.FILES['file'])
+    
     return Response({'message': 'Available'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -157,10 +167,11 @@ def follow_user(request):
                     notification = Notification.objects.create(user = target_user[0], from_user = request.user,
                     content='followed you', url='/profile/' + request.user.profile_name)
                     channel_layer = get_channel_layer()
-                    async_to_sync(channel_layer.send)(target_user[0].channel_name, {
-                        "type": "new_notification",
-                        'notification': NotificationSerializer(notification).data
-                    })
+                    if target_user[0].channel_name != '':
+                        async_to_sync(channel_layer.send)(target_user[0].channel_name, {
+                            "type": "new_notification",
+                            'notification': NotificationSerializer(notification).data
+                        })
                 request.user.save()
                 return Response({'message': 'Success'}, status=status.HTTP_200_OK)
             return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -184,10 +195,11 @@ def like_a_post(request):
                     notification = Notification.objects.create(user = target_post[0].user, from_user = request.user,
                     content='liked one of your posts.')
                     channel_layer = get_channel_layer()
-                    async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
-                        "type": "new_notification",
-                        'notification': NotificationSerializer(notification).data
-                    })
+                    if target_post[0].user.channel_name != '':
+                        async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
+                            "type": "new_notification",
+                            'notification': NotificationSerializer(notification).data
+                        })
                 return Response({'message': 'Liked'}, status=status.HTTP_200_OK)
             else:
                 target_post[0].liked_by.remove(request.user)
@@ -227,10 +239,11 @@ def add_a_comment(request):
                 notification = Notification.objects.create(user = target_post[0].user, from_user = request.user,
                 content='commented on one of your posts.')
                 channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
-                    "type": "new_notification",
-                    'notification': NotificationSerializer(notification).data
-                })
+                if target_post[0].user.channel_name != '':
+                    async_to_sync(channel_layer.send)(target_post[0].user.channel_name, {
+                        "type": "new_notification",
+                        'notification': NotificationSerializer(notification).data
+                    })
             return Response({'message': 'Success', 'comment': CommentSerializer(comment).data}, status=status.HTTP_200_OK)
         return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -251,15 +264,21 @@ def upload_picture(request):
     user_email = request.user.email
     request_email = request.POST['email']
     if user_email == request_email:
-        if request.POST['type'] == 'avatar':
-            request.user.avatar = request.FILES['file']
-            request.user.save()
-        else:
-            post = Post.objects.filter(uuid = request.POST['uuid'])
-            if len(post) > 0:
-                for image in request.FILES.getlist('file'):
-                    PostImage.objects.create(image = image, post = post[0])
-    return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+        post = Post.objects.filter(uuid = request.POST['uuid'])
+        for image in request.FILES.getlist('file'):
+            PostImage.objects.create(image = image, post = post[0])
+        return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_avatar(request):
+    user_email = request.user.email
+    request_email = request.POST['email']
+    if user_email == request_email:
+        UserAvatar.objects.create(user = request.user, image = request.FILES['file'])
+        return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 def search(request):
