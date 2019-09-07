@@ -1,4 +1,4 @@
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile, Tag
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile, HashTag
 from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -68,21 +68,22 @@ class PostImageSerializer(serializers.ModelSerializer):
         model = PostImage
         fields = ['image']
 
-class TagSerializer(serializers.ModelSerializer):
+class HashTagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tag
-        fields = ['name']
+        model = HashTag
+        fields = ['name', 'most_recent', 'posts']
 
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     liked_by = UserSerializer(many = True)
+    hidden_by = UserSerializer(many = True)
     date_created = serializers.DateTimeField('%B %d %Y at %H:%M')
     comments = CommentSerializer(many = True)
     images = PostImageSerializer(many = True)
-    tags = TagSerializer(many = True)
+    hashtags = HashTagSerializer(many = True)
     class Meta:
         model = Post
-        fields = ['uuid', 'user', 'text_content', 'date_created', 'liked_by', 'comments', 'images', 'tags']
+        fields = ['uuid', 'user', 'text_content', 'date_created', 'liked_by', 'hidden_by', 'comments', 'images', 'hashtags']
 
 class NotificationSerializer(serializers.ModelSerializer):
     user = UserSerializer()

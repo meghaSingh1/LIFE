@@ -12,10 +12,11 @@ urlpatterns = [
     path('api/add_a_comment', views.add_a_comment, name='add_a_comment'),
     path('api/read_notifications', views.read_notifications, name='read_notifications'),
     path('api/follow_user', views.follow_user, name='follow_user'),
-    path('api/get_feed_posts', views.get_feed_posts, name='get_feed_posts'),
+    path('api/get_home_feed', views.get_home_feed, name='get_home_feed'),
     path('api/get_user_profile', views.get_user_profile, name='get_user_profile'),
     path('api/check_profile_name_availability', views.check_profile_name_availability, name='check_profile_name_availability'),
     path('api/upload_picture', views.upload_picture, name='upload_picture'),
     path('api/upload_avatar', views.upload_avatar, name='upload_avatar'),
     path('api/search', views.search, name='search'),
+    path('api/get_trending_hashtags', views.get_trending_hashtags, name='get_trending_hashtags'),
 ]

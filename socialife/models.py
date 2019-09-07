@@ -128,7 +128,7 @@ def create_user_avatar(sender, **kwargs):
             if avatar != kwargs['instance']:
                 avatar.delete()
 
-class Tag(models.Model):
+class HashTag(models.Model):
     name = models.CharField(max_length = 100)
     most_recent = models.DateTimeField(auto_now_add = True)
 
@@ -138,8 +138,9 @@ class Post(models.Model):
     user = models.ForeignKey(MyUser, on_delete = models.CASCADE)
     text_content = models.TextField()
     date_created = models.DateTimeField(auto_now_add = True)
-    liked_by = models.ManyToManyField(MyUser, related_name = 'liked_by')
-    tags = models.ManyToManyField(Tag, related_name = 'posts')
+    liked_by = models.ManyToManyField(MyUser, related_name = 'liked_posts')
+    hidden_by = models.ManyToManyField(MyUser, related_name = 'hidden_posts')
+    hashtags = models.ManyToManyField(HashTag, related_name = 'posts')
 
 class PostImage(models.Model):
     def user_directory_path(instance, filename):

@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile, Tag
-from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer
+from .models import MyUser, Post, Comment, Notification, ChatRoom, Message, PostImage, UserAvatar, UserProfile, HashTag
+from .serializers import UserSerializer, PostSerializer, CommentSerializer, NotificationSerializer, ChatRoomSerializer, MessageSerializer, HashTagSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -22,6 +22,7 @@ from .search_engine import Search
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.utils import timezone
+from django.db.models import Count
 
 
 @api_view(['POST'])
@@ -87,17 +88,17 @@ def create_new_post(request):
     if user_is_valid:
         text_content = data['text_content']
         new_post = Post.objects.create(text_content = text_content, user = request.user)
-        tags = data['tags']
-        if len(tags) > 0:
-            for tag in tags:
-                existed_tag = Tag.objects.filter(name = tag)
-                if len(existed_tag) > 0:
-                    new_post.tags.add(existed_tag)
-                    existed_tag.most_recent = timezone.now()
-                    existed_tag.save()
+        hashtags = data['hashtags']
+        if len(hashtags) > 0:
+            for hashtag in hashtags:
+                existed_hashtag = HashTag.objects.filter(name = hashtag)
+                if len(existed_hashtag) > 0:
+                    new_post.hashtags.add(existed_hashtag[0])
+                    existed_hashtag[0].most_recent = timezone.now()
+                    existed_hashtag[0].save()
                 else:
-                    new_tag = Tag.objects.create(name = tag)
-                    new_post.tags.add(new_tag)
+                    new_hashtag = HashTag.objects.create(name = hashtag)
+                    new_post.hashtags.add(new_hashtag)
                 new_post.save()
 
         return Response({'message': 'Success', 'post': PostSerializer(new_post).data}, status=status.HTTP_201_CREATED)
@@ -106,12 +107,14 @@ def create_new_post(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def get_feed_posts(request):
+def get_home_feed(request):
     user_is_valid = check_user_with_token(request)
     if user_is_valid:
         user_posts = Post.objects.filter(Q(user = request.user) | Q(user__in=request.user.followings.all())).order_by('-date_created')
         serializer = PostSerializer(user_posts, many = True).data
-        return Response({'message': 'Authorized', 'user_posts': serializer}, status=status.HTTP_200_OK)
+        one_month_ago = timezone.now() - timezone.timedelta(days = 30)
+        trending_hashtags = HashTag.objects.filter(most_recent__gt = one_month_ago).annotate(count=Count('posts')).order_by('-count')[:5]
+        return Response({'message': 'Authorized', 'user_posts': serializer, 'trending_hashtags': HashTagSerializer(trending_hashtags, many = True).data}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -150,9 +153,13 @@ def get_user_profile(request):
     user = MyUser.objects.filter(profile_name = request_profile_name)
     if len(user) == 1:
         user_serializer = UserSerializer(user[0]).data
+        followings = user[0].followings.all()
+        followers = user[0].followers.all()
         user_posts = Post.objects.filter(user = user[0]).order_by('-date_created')
         post_serializer = PostSerializer(user_posts, many = True).data
-        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer}, status=status.HTTP_200_OK)
+        return Response({'message': 'Success', 'user': user_serializer, 'user_posts': post_serializer,
+        'followings': UserSerializer(followings, many = True).data,
+        'followers': UserSerializer(followers, many = True).data}, status=status.HTTP_200_OK)
     return Response({'message': 'Failed'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
@@ -299,3 +306,9 @@ def search(request):
     if search.result != None:
         return Response({'message': 'Success', 'result': UserSerializer(search.result, many=True).data}, status=status.HTTP_200_OK)
     return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def get_trending_hashtags(request):
+    one_month_ago = timezone.now() - timezone.timedelta(days = 30)
+    trending_hashtags = HashTag.objects.filter(most_recent__gt = one_month_ago).annotate(count=Count('posts')).order_by('-count')[:5]
+    return Response({'message': 'Success', 'trending_hashtags': HashTagSerializer(trending_hashtags, many = True).data}, status=status.HTTP_200_OK)
