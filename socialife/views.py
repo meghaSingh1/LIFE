@@ -272,6 +272,25 @@ def read_notifications(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def add_or_remove_bookmark(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        target_post_uuid = data['post_uuid']
+        target_post = Post.objects.filter(uuid = target_post_uuid)
+        if len(target_post) == 1:
+            if data['type'] == 'add':
+                target_post[0].bookmarked_by.add(request.user)
+            elif data['type'] == 'remove':
+                target_post[0].bookmarked_by.remove(request.user)
+            target_post[0].save()
+            return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def upload_picture(request):
     user_email = request.user.email
     request_email = request.POST['email']
@@ -291,6 +310,7 @@ def upload_avatar(request):
         UserAvatar.objects.create(user = request.user, image = request.FILES['file'])
         return Response({'message': 'Success'}, status=status.HTTP_200_OK)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @api_view(['POST'])
 def search(request):
@@ -312,3 +332,12 @@ def get_trending_hashtags(request):
     one_month_ago = timezone.now() - timezone.timedelta(days = 30)
     trending_hashtags = HashTag.objects.filter(most_recent__gt = one_month_ago).annotate(count=Count('posts')).order_by('-count')[:5]
     return Response({'message': 'Success', 'trending_hashtags': HashTagSerializer(trending_hashtags, many = True).data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def get_bookmark(request):
+    user_is_valid = check_user_with_token(request)
+    data = json.loads(request.body.decode('utf-8'))
+    if user_is_valid:
+        posts = request.user.bookmarked_posts.all()
+        return Response({'message': 'Success', 'bookmarked_posts': PostSerializer(posts, many=True).data}, status=status.HTTP_200_OK)
+    return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)

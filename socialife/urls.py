@@ -19,4 +19,6 @@ urlpatterns = [
     path('api/upload_avatar', views.upload_avatar, name='upload_avatar'),
     path('api/search', views.search, name='search'),
     path('api/get_trending_hashtags', views.get_trending_hashtags, name='get_trending_hashtags'),
+    path('api/add_or_remove_bookmark', views.add_or_remove_bookmark, name='add_or_remove_bookmark'),
+    path('api/get_bookmark', views.get_bookmark, name='get_bookmark'),
 ]

@@ -140,6 +140,7 @@ class Post(models.Model):
     date_created = models.DateTimeField(auto_now_add = True)
     liked_by = models.ManyToManyField(MyUser, related_name = 'liked_posts')
     hidden_by = models.ManyToManyField(MyUser, related_name = 'hidden_posts')
+    bookmarked_by = models.ManyToManyField(MyUser, related_name = 'bookmarked_posts')
     hashtags = models.ManyToManyField(HashTag, related_name = 'posts')
 
 class PostImage(models.Model):
